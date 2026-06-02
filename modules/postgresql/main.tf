@@ -36,29 +36,16 @@ locals {
 
 # ===========================================================================
 # POSTGRESQL FLEXIBLE SERVER
-# Module: Azure/avm-res-dbforpostgresql-flexibleserver/azurerm
-#
-# prevent_destroy is set to true to protect against accidental destruction.
-# To intentionally destroy this server:
-#   1. Change prevent_destroy to false in modules/postgresql/main.tf
-#   2. Run: terraform destroy -var-file="terraform.tfvars"
-#   3. Change prevent_destroy back to true and commit
 # ===========================================================================
 
 module "postgresql" {
   source  = "Azure/avm-res-dbforpostgresql-flexibleserver/azurerm"
   version = "0.2.2"
 
-  # --------------------------------------------------
-  # Required
-  # --------------------------------------------------
   name                = var.pg_server_name
   location            = data.azurerm_resource_group.pg.location
   resource_group_name = data.azurerm_resource_group.pg.name
 
-  # --------------------------------------------------
-  # Compute & Storage
-  # --------------------------------------------------
   sku_name       = var.pg_sku_name
   server_version = var.pg_version
   storage_mb     = var.pg_storage_mb
@@ -67,38 +54,23 @@ module "postgresql" {
 
   auto_grow_enabled = var.pg_auto_grow_enabled
 
-  # --------------------------------------------------
-  # Administrator credentials
-  # --------------------------------------------------
   administrator_login    = var.pg_admin_login
   administrator_password = var.pg_admin_password
 
-  # --------------------------------------------------
-  # Backup
-  # --------------------------------------------------
   backup_retention_days        = var.pg_backup_retention_days
   geo_redundant_backup_enabled = var.pg_geo_redundant_backup_enabled
 
-  # --------------------------------------------------
-  # Maintenance window
-  # --------------------------------------------------
   maintenance_window = {
     day_of_week  = var.pg_maintenance_window.day_of_week
     start_hour   = var.pg_maintenance_window.start_hour
     start_minute = var.pg_maintenance_window.start_minute
   }
 
-  # --------------------------------------------------
-  # High Availability
-  # --------------------------------------------------
   high_availability = var.pg_ha_enabled ? {
     mode                      = "ZoneRedundant"
     standby_availability_zone = var.pg_ha_standby_zone
   } : null
 
-  # --------------------------------------------------
-  # Private Endpoint
-  # --------------------------------------------------
   private_endpoints = {
     primary = {
       subnet_resource_id            = data.azurerm_subnet.private_endpoint.id
@@ -107,28 +79,8 @@ module "postgresql" {
     }
   }
 
-  # --------------------------------------------------
-  # Databases
-  # --------------------------------------------------
   databases = var.pg_databases
-
-  # --------------------------------------------------
-  # Tags
-  # --------------------------------------------------
-  tags = local.common_tags
+  tags      = local.common_tags
 
   enable_telemetry = false
-}
-
-# ===========================================================================
-# PREVENT ACCIDENTAL DESTROY
-# This null resource exists solely to enforce prevent_destroy on the server.
-# To destroy: comment out this block, then run terraform apply first.
-# ===========================================================================
-resource "terraform_data" "prevent_destroy_guard" {
-  input = module.postgresql.resource_id
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
