@@ -37,6 +37,12 @@ locals {
 # ===========================================================================
 # POSTGRESQL FLEXIBLE SERVER
 # Module: Azure/avm-res-dbforpostgresql-flexibleserver/azurerm
+#
+# prevent_destroy is set to true to protect against accidental destruction.
+# To intentionally destroy this server:
+#   1. Change prevent_destroy to false in modules/postgresql/main.tf
+#   2. Run: terraform destroy -var-file="terraform.tfvars"
+#   3. Change prevent_destroy back to true and commit
 # ===========================================================================
 
 module "postgresql" {
@@ -112,4 +118,17 @@ module "postgresql" {
   tags = local.common_tags
 
   enable_telemetry = false
+}
+
+# ===========================================================================
+# PREVENT ACCIDENTAL DESTROY
+# This null resource exists solely to enforce prevent_destroy on the server.
+# To destroy: comment out this block, then run terraform apply first.
+# ===========================================================================
+resource "terraform_data" "prevent_destroy_guard" {
+  input = module.postgresql.resource_id
+
+  lifecycle {
+    prevent_destroy = true
+  }
 }
