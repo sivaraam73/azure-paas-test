@@ -1,7 +1,7 @@
 # ===========================================================================
 # terraform.tfvars — PostgreSQL Flexible Server
 #
-# INSTRUCTIONS FOR ENGINEERS:
+# INSTRUCTIONS:
 #   1. Copy the entire _template folder and rename to your server name:
 #        cp -r _template environments/dta/psql-myapp-dta-001
 #
